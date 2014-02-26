@@ -26,12 +26,13 @@ class BoardCtrl
     c2 = c[pattern[2]] || pattern[2]
     "#{c0}#{c1}#{c2}"
 
+  checkForWin: (board) ->
+    'xxx' == board || 'ooo' == board
 
   parseBoard: =>
-    console.log '-'
     for pattern in @Settings.WIN_PATTERNS
       board = @getBoard(pattern)
-      console.log board
+      console.log @checkForWin(board)
 
   mark: (@$event) =>
     cell = @$event.target.dataset.index

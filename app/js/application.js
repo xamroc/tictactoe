@@ -30,15 +30,18 @@
       return "" + c0 + c1 + c2;
     };
 
+    BoardCtrl.prototype.checkForWin = function(board) {
+      return 'xxx' === board || 'ooo' === board;
+    };
+
     BoardCtrl.prototype.parseBoard = function() {
       var board, pattern, _i, _len, _ref, _results;
-      console.log('-');
       _ref = this.Settings.WIN_PATTERNS;
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         pattern = _ref[_i];
         board = this.getBoard(pattern);
-        _results.push(console.log(board));
+        _results.push(console.log(this.checkForWin(board)));
       }
       return _results;
     };
