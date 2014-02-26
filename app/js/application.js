@@ -20,12 +20,12 @@
       this.player = __bind(this.player, this);
       this.numberOfMoves = __bind(this.numberOfMoves, this);
       this.resetBoard = __bind(this.resetBoard, this);
-      this.getBoard = __bind(this.getBoard, this);
+      this.getRow = __bind(this.getRow, this);
       this.$scope.cells = {};
       this.$scope.mark = this.mark;
     }
 
-    BoardCtrl.prototype.getBoard = function(pattern) {
+    BoardCtrl.prototype.getRow = function(pattern) {
       var c, c0, c1, c2;
       c = this.$scope.cells;
       c0 = c[pattern[0]] || pattern[0];
@@ -73,7 +73,7 @@
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         pattern = _ref[_i];
-        board = this.getBoard(pattern);
+        board = this.getRow(pattern);
         if (this.someoneWon(board)) {
           _results.push(this.announceWinner());
         } else {
