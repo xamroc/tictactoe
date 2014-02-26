@@ -34,8 +34,8 @@
       return "" + c0 + c1 + c2;
     };
 
-    BoardCtrl.prototype.someoneWon = function(board) {
-      return 'xxx' === board || 'ooo' === board;
+    BoardCtrl.prototype.someoneWon = function(row) {
+      return 'xxx' === row || 'ooo' === row;
     };
 
     BoardCtrl.prototype.resetBoard = function() {
@@ -68,13 +68,13 @@
     };
 
     BoardCtrl.prototype.parseBoard = function() {
-      var board, pattern, _i, _len, _ref, _results;
+      var pattern, row, _i, _len, _ref, _results;
       _ref = this.Settings.WIN_PATTERNS;
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         pattern = _ref[_i];
-        board = this.getRow(pattern);
-        if (this.someoneWon(board)) {
+        row = this.getRow(pattern);
+        if (this.someoneWon(row)) {
           _results.push(this.announceWinner());
         } else {
           _results.push(void 0);
