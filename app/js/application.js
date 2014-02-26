@@ -19,8 +19,10 @@
       this.$scope.mark = this.mark;
     }
 
-    BoardCtrl.prototype.mark = function(cell) {
-      var player;
+    BoardCtrl.prototype.mark = function($event) {
+      var cell, player;
+      this.$event = $event;
+      cell = this.$event.target.dataset.index;
       player = Object.keys(this.$scope.cells).length % 2 === 0 ? 'x' : 'o';
       return this.$scope.cells[cell] = player;
     };

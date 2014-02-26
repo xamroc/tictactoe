@@ -19,7 +19,8 @@ class BoardCtrl
     @$scope.cells = {}
     @$scope.mark = @mark
 
-  mark: (cell) =>
+  mark: (@$event) =>
+    cell = @$event.target.dataset.index
     player = if Object.keys(@$scope.cells).length % 2 == 0 then 'x' else 'o'
     @$scope.cells[cell] = player
 
