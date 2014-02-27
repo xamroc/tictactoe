@@ -159,8 +159,8 @@
     BoardCtrl.prototype.mark = function($event) {
       var cell;
       this.$event = $event;
-      if (this.$scope.gameOn) {
-        cell = this.$event.target.dataset.index;
+      cell = this.$event.target.dataset.index;
+      if (this.$scope.gameOn && !this.cells[cell]) {
         this.cells[cell] = this.player();
         this.parseBoard();
         return this.$scope.currentPlayer = this.player();

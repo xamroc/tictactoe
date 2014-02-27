@@ -43,7 +43,6 @@ class BoardCtrl
     @$scope.theWinnerIs = false
     @$scope.cats = false
     @cells = @$scope.cells = {}
-    # @$scope.currentPlayer = @player()
     @getPatterns()
 
   numberOfMoves: =>
@@ -116,8 +115,8 @@ class BoardCtrl
       @announceTie()
 
   mark: (@$event) =>
-    if @$scope.gameOn
-      cell = @$event.target.dataset.index
+    cell = @$event.target.dataset.index
+    if @$scope.gameOn && !@cells[cell]
       @cells[cell] = @player()
       @parseBoard()
       @$scope.currentPlayer = @player()
