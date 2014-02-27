@@ -2,6 +2,7 @@
  *  hsla(   0,   0.0%, 100.0%, 1 )   white
  *  hsla(   0,   0.0%,  13.3%, 1 )   dark gray
  *  hsla(   0,   0.0%,  60.0%, 1 )   medium gray
+ *  hsla(   0,   0.0%,  80.0%, 1 )   light gray
  *  hsla(   2,  64.7%,  50.0%, 1 )   red
  *  hsla( 120,  39.6%,  46.0%, 1 )   green
  *  hsla( 208,  55.9%,  44.5%, 1 )   blue
@@ -16,8 +17,8 @@ body {
   cursor: default;
   margin: 0;
   padding: 0;
-  color: hsla( 0, 0.0%, 13.3%, 1);
-  background-color: hsla( 0, 0.0%, 100.0%, 1);
+  color: hsla( 0, 0.0%, 13.3%, 1 );
+  background-color: hsla( 0, 0.0%, 100.0%, 1 );
 }
 
 h1 {
@@ -32,7 +33,7 @@ h1 {
 
 .tic, .tac, .toe { background-color: hsla( 0, 0.0%, 100.0%, 1 ); }
 .tic { color: hsla(   2,  64.7%,  50.0%, 1 ); }
-.tac { color: hsla( 120,  39.6%,  46.0%, 1 );  }
+.tac { color: hsla( 120,  39.6%,  46.0%, 1 ); }
 .toe { color: hsla( 208,  55.9%,  44.5%, 1 ); }
 
 .button { text-align: center; }
@@ -73,16 +74,16 @@ h1 {
   width: 78px;
   height: 78px;
   padding-top: 5px;
-  border: 1px solid hsla( 0, 0.0%, 60.0%, 1);
+  border: 1px solid hsla( 0, 0.0%, 60.0%, 1 );
 }
 
-.top    { border-top:    0; }
-.bottom { border-bottom: 0; }
-.left   { border-left:   0; }
-.right  { border-right:  0; }
+.top     { border-top:    0; }
+.bottom  { border-bottom: 0; }
+.left    { border-left:   0; }
+.right   { border-right:  0; }
 
-.x { color: hsla( 208, 55.9%, 44.5%, 1); }
-.o { color: hsla( 120, 39.6%, 46.0%, 1); }
+.x { color: hsla( 208,  55.9%,  44.5%, 1 ); }
+.o { color: hsla( 120,  39.6%,  46.0%, 1 ); }
 
-.win   { color: hsla(   2,  64.7%,  50.0%, 1 ); }
-.unwin { color: hsla(   0,   0.0%,  80.0%, 1 ); }
+.win   { color: hsla( 2, 64.7%, 50.0%, 1 ); }
+.unwin { color: hsla( 0,  0.0%, 80.0%, 1 ); }
