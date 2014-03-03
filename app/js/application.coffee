@@ -20,13 +20,16 @@ class BoardCtrl
     @$scope.mark = @mark
     @$scope.startGame = @startGame
     @$scope.gameOn = false
-    @dbRef = new Firebase "https://tictactoe-lau.firebaseio.com/"
-    @db = @$firebase @dbRef
 
-  startGame: =>
+  uniqueId: (length = 8) ->
+    id = ""
+    id += Math.random().toString(36).substr(2) while id.length < length
+    id.substr 0, length
+
+  startGame: =>      
     @$scope.gameOn = true
     @$scope.currentPlayer = @player()
-    @resertBoard()
+    @resetBoard()
 
   getPatterns: =>
     @patternsToTest = @WIN_PATTERNS.filter -> true
@@ -46,6 +49,9 @@ class BoardCtrl
     @$scope.cats = false
     @cells = @$scope.cells = {}
     @getPatterns()
+    @id = @uniqueId()
+    @dbRef = new Firebase "https://tictactoe-lau.firebaseio.com/#{@id}"
+    @db = @$firebase @dbRef
 
   numberOfMoves: =>
     Object.keys(@cells).length
@@ -120,6 +126,7 @@ class BoardCtrl
     cell = @$event.target.dataset.index
     if @$scope.gameOn && !@cells[cell]
       @cells[cell] = @player()
+      @db.$set board: @cells
       @parseBoard()
       @$scope.currentPlayer = @player()
 
