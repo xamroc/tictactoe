@@ -46,20 +46,41 @@
     };
 
     BoardCtrl.prototype.startGame = function() {
+      var currentValue, error;
       this.$scope.gameOn = true;
       this.resetBoard();
       if (this.unbind) {
         this.unbind();
       }
-      this.id = this.uniqueId();
-      this.dbRef = new Firebase("https://tictactoe-lau.firebaseio.com/" + this.id);
-      this.db = this.$firebase(this.dbRef.child('board'));
-      return this.db.$bind(this.$scope, 'cells').then((function(_this) {
-        return function(unbind) {
-          _this.unbind = unbind;
-          return _this.$scope.gameOn = true;
+      this.pendingRef = new Firebase("https://tictactoe-lau.firebaseio.com/pending");
+      this.gamesRef = new Firebase("https://tictactoe-lau.firebaseio.com/games");
+      this.gameId = null;
+      currentValue = (function(_this) {
+        return function(current_value) {
+          if (current_value === null) {
+            return _this.uniqueId();
+          } else {
+            return null;
+          }
         };
-      })(this));
+      })(this);
+      error = (function(_this) {
+        return function(error, committed, snapshot) {
+          var gameId;
+          console.log("error: " + error);
+          console.log("committed: " + committed);
+          console.log("snapshot: " + snapshot.val());
+          if (committed && !error) {
+            gameId = snapshot.val();
+            if (gameId === null) {
+              return "join game";
+            } else {
+              return "create game";
+            }
+          }
+        };
+      })(this);
+      return this.pendingRef.transaction(currentValue, error);
     };
 
     BoardCtrl.prototype.getPatterns = function() {

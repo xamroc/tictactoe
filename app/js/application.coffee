@@ -2,7 +2,7 @@
 
 @ticTacToe = angular.module 'TicTacToe', ["firebase"]
 
-ticTacToe.  constant 'WIN_PATTERNS',
+ticTacToe.constant 'WIN_PATTERNS',
   [
     [0,1,2]
     [3,4,5]
@@ -30,12 +30,55 @@ class BoardCtrl
     @$scope.gameOn = true
     @resetBoard()
     @unbind() if @unbind
-    @id = @uniqueId()
-    @dbRef = new Firebase "https://tictactoe-lau.firebaseio.com/#{@id}"
-    @db = @$firebase @dbRef.child('board')
-    @db.$bind( @$scope, 'cells' ).then (unbind) =>
-      @unbind = unbind
-      @$scope.gameOn = true
+
+    @pendingRef = new Firebase "https://tictactoe-lau.firebaseio.com/pending"
+    @gamesRef = new Firebase "https://tictactoe-lau.firebaseio.com/games"
+
+    @gameId = null
+
+    currentValue = (current_value) =>
+      if current_value == null
+        @uniqueId()
+      else
+        null
+
+    error = (error, committed, snapshot) =>
+      console.log "error: " + error
+      console.log "committed: " + committed
+      console.log "snapshot: " + snapshot.val()
+      if committed && !error
+        gameId = snapshot.val()
+        if gameId == null
+          "join game"
+        else
+          "create game"
+
+    @pendingRef.transaction currentValue, error
+    # NOTHING = null
+
+    # @pendingRef.on 'value', (snapshot) ->
+    #   console.log "snapshot: " + snapshot.val()
+    #   if snapshot.val() == NOTHING
+    #     @pendingRef.$bind( @$scope, 'id' ).then (unbind) =>
+    #       @$scope.id = @uniqueId()
+    #       @unbind = unbind
+    #       @$scope.gameOn = true
+
+    # currentValue = (current_value) ->
+    #   current_value
+
+    # error = (error, committed, snapshot) ->
+    #   if error 
+    #     console.log 'Transaction failed abnormally!', error
+    #   else if !committed
+    #     console.log 'We aborted the transaction (because already exists).'
+    #   else
+    #     console.log 'User wilma added!'
+    #   console.log "data: ", snapshot.val()
+
+    # @something = @pendingRef.transaction currentValue, error
+
+    # console.log @something
 
   getPatterns: =>
     @patternsToTest = @WIN_PATTERNS.filter -> true
