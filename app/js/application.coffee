@@ -2,7 +2,7 @@
 
 @ticTacToe = angular.module 'TicTacToe', ["firebase"]
 
-ticTacToe.constant 'WIN_PATTERNS',
+ticTacToe.  constant 'WIN_PATTERNS',
   [
     [0,1,2]
     [3,4,5]
@@ -32,7 +32,7 @@ class BoardCtrl
     @unbind() if @unbind
     @id = @uniqueId()
     @dbRef = new Firebase "https://tictactoe-lau.firebaseio.com/#{@id}"
-    @db = @$firebase @dbRef
+    @db = @$firebase @dbRef.child('board')
     @db.$bind( @$scope, 'cells' ).then (unbind) =>
       @unbind = unbind
       @$scope.gameOn = true
