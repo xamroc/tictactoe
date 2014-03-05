@@ -54,12 +54,12 @@
       }
       this.pendingRef = new Firebase("https://tictactoe-lau.firebaseio.com/pending");
       this.gamesRef = new Firebase("https://tictactoe-lau.firebaseio.com/games");
-      this.gameId = null;
       currentValue = (function(_this) {
         return function(current_value) {
           if (current_value === null) {
             return _this.uniqueId();
           } else {
+            _this.gameId = current_value;
             return null;
           }
         };
@@ -73,7 +73,11 @@
           if (committed && !error) {
             gameId = snapshot.val();
             if (gameId === null) {
-              return "join game";
+              _this.game = _this.$firebase(_this.gamesRef.child("" + _this.gameId));
+              return _this.game.$bind(_this.$scope, 'cells').then(function(unbind) {
+                _this.unbind = unbind;
+                return _this.$scope.gameOn = true;
+              });
             } else {
               return "create game";
             }

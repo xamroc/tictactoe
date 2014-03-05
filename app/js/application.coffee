@@ -34,12 +34,11 @@ class BoardCtrl
     @pendingRef = new Firebase "https://tictactoe-lau.firebaseio.com/pending"
     @gamesRef = new Firebase "https://tictactoe-lau.firebaseio.com/games"
 
-    @gameId = null
-
     currentValue = (current_value) =>
       if current_value == null
         @uniqueId()
       else
+        @gameId = current_value
         null
 
     error = (error, committed, snapshot) =>
@@ -49,7 +48,10 @@ class BoardCtrl
       if committed && !error
         gameId = snapshot.val()
         if gameId == null
-          "join game"
+          @game = @$firebase @gamesRef.child("#{@gameId}")
+          @game.$bind( @$scope, 'cells' ).then (unbind) =>
+            @unbind = unbind
+            @$scope.gameOn = true
         else
           "create game"
 
@@ -59,10 +61,10 @@ class BoardCtrl
     # @pendingRef.on 'value', (snapshot) ->
     #   console.log "snapshot: " + snapshot.val()
     #   if snapshot.val() == NOTHING
-    #     @pendingRef.$bind( @$scope, 'id' ).then (unbind) =>
-    #       @$scope.id = @uniqueId()
-    #       @unbind = unbind
-    #       @$scope.gameOn = true
+        # @pendingRef.$bind( @$scope, 'id' ).then (unbind) =>
+        #   @$scope.id = @uniqueId()
+        #   @unbind = unbind
+        #   @$scope.gameOn = true
 
     # currentValue = (current_value) ->
     #   current_value
