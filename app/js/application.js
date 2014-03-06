@@ -10,29 +10,6 @@
   ticTacToe.constant('WIN_PATTERNS', [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]);
 
   BoardCtrl = (function() {
-    function BoardCtrl($scope, WIN_PATTERNS, $firebase) {
-      this.$scope = $scope;
-      this.WIN_PATTERNS = WIN_PATTERNS;
-      this.$firebase = $firebase;
-      this.mark = __bind(this.mark, this);
-      this.parseBoard = __bind(this.parseBoard, this);
-      this.rowStillWinnable = __bind(this.rowStillWinnable, this);
-      this.announceTie = __bind(this.announceTie, this);
-      this.announceWinner = __bind(this.announceWinner, this);
-      this.gameUnwinnable = __bind(this.gameUnwinnable, this);
-      this.player = __bind(this.player, this);
-      this.movesRemaining = __bind(this.movesRemaining, this);
-      this.numberOfMoves = __bind(this.numberOfMoves, this);
-      this.resetBoard = __bind(this.resetBoard, this);
-      this.getRow = __bind(this.getRow, this);
-      this.getPatterns = __bind(this.getPatterns, this);
-      this.startGame = __bind(this.startGame, this);
-      this.resetBoard();
-      this.$scope.mark = this.mark;
-      this.$scope.startGame = this.startGame;
-      this.$scope.gameOn = false;
-    }
-
     BoardCtrl.prototype.uniqueId = function(length) {
       var id;
       if (length == null) {
@@ -45,46 +22,80 @@
       return id.substr(0, length);
     };
 
-    BoardCtrl.prototype.startGame = function() {
-      var currentValue, error;
-      this.$scope.gameOn = true;
+    function BoardCtrl($scope, WIN_PATTERNS, $firebase) {
+      this.WIN_PATTERNS = WIN_PATTERNS;
+      this.makeMove = __bind(this.makeMove, this);
+      this.parseBoard = __bind(this.parseBoard, this);
+      this.announceTie = __bind(this.announceTie, this);
+      this.announceWinner = __bind(this.announceWinner, this);
+      this.gameUnwinnable = __bind(this.gameUnwinnable, this);
+      this.rowStillWinnable = __bind(this.rowStillWinnable, this);
+      this.movesRemaining = __bind(this.movesRemaining, this);
+      this.getRow = __bind(this.getRow, this);
+      this.getPatterns = __bind(this.getPatterns, this);
+      this.startGame = __bind(this.startGame, this);
+      this.resetBoard = __bind(this.resetBoard, this);
+      this.runGame = __bind(this.runGame, this);
+      this.numberOfMoves = __bind(this.numberOfMoves, this);
+      this.setUpGame = __bind(this.setUpGame, this);
+      this.scope = $scope;
+      this.firebase = $firebase;
+      this.scope.startGame = this.startGame;
+      this.scope.makeMove = this.makeMove;
+      this.scope.gameOn = false;
+      this.scope.myMove = false;
       this.resetBoard();
-      if (this.unbind) {
-        this.unbind();
+      this.pendingGameRef = new Firebase("https://tictactoe-lau.firebaseio.com/tictactoe/pendingGame");
+    }
+
+    BoardCtrl.prototype.setUpGame = function(pendingGame) {
+      if (pendingGame) {
+        this.gameId = pendingGame;
+        this.player = 1;
+        this.scope.myMove = true;
+        return null;
+      } else {
+        this.gameId = this.uniqueId();
+        this.player = 0;
+        return this.gameId;
       }
-      this.pendingRef = new Firebase("https://tictactoe-lau.firebaseio.com/pending");
-      this.gamesRef = new Firebase("https://tictactoe-lau.firebaseio.com/games");
-      currentValue = (function(_this) {
-        return function(current_value) {
-          if (current_value === null) {
-            return _this.uniqueId();
-          } else {
-            _this.gameId = current_value;
-            return null;
-          }
+    };
+
+    BoardCtrl.prototype.numberOfMoves = function() {
+      return Object.keys(this.scope.cells).filter(function(k) {
+        return k.length === 1;
+      }).length;
+    };
+
+    BoardCtrl.prototype.runGame = function(error, committed, snapshot) {
+      this.boardRef = new Firebase("https://tictactoe-lau.firebaseio.com/tictactoe/games/" + this.gameId + "/board");
+      this.board = this.firebase(this.boardRef);
+      this.board.$bind(this.scope, 'cells').then((function(_this) {
+        return function(unbind) {
+          _this.unbindCells = unbind;
+          return _this.scope.gameOn = true;
         };
-      })(this);
-      error = (function(_this) {
-        return function(error, committed, snapshot) {
-          var gameId;
-          console.log("error: " + error);
-          console.log("committed: " + committed);
-          console.log("snapshot: " + snapshot.val());
-          if (committed && !error) {
-            gameId = snapshot.val();
-            if (gameId === null) {
-              _this.game = _this.$firebase(_this.gamesRef.child("" + _this.gameId));
-              return _this.game.$bind(_this.$scope, 'cells').then(function(unbind) {
-                _this.unbind = unbind;
-                return _this.$scope.gameOn = true;
-              });
-            } else {
-              return "create game";
-            }
-          }
+      })(this));
+      return this.board.$on("change", (function(_this) {
+        return function() {
+          _this.scope.myMove = (_this.numberOfMoves() + 1) % 2 === _this.player;
+          return _this.parseBoard();
         };
-      })(this);
-      return this.pendingRef.transaction(currentValue, error);
+      })(this));
+    };
+
+    BoardCtrl.prototype.resetBoard = function() {
+      this.gameId = null;
+      if (this.unbindCells) {
+        this.unbindCells();
+      }
+      this.scope.cells = {};
+      return this.scope.winningCells = {};
+    };
+
+    BoardCtrl.prototype.startGame = function() {
+      this.resetBoard();
+      return this.pendingGameRef.transaction(this.setUpGame, this.runGame, true);
     };
 
     BoardCtrl.prototype.getPatterns = function() {
@@ -95,7 +106,7 @@
 
     BoardCtrl.prototype.getRow = function(pattern) {
       var c, c0, c1, c2;
-      c = this.cells;
+      c = this.scope.cells;
       c0 = c[pattern[0]] || pattern[0];
       c1 = c[pattern[1]] || pattern[1];
       c2 = c[pattern[2]] || pattern[2];
@@ -106,66 +117,44 @@
       return 'xxx' === row || 'ooo' === row;
     };
 
-    BoardCtrl.prototype.resetBoard = function() {
-      this.$scope.theWinnerIs = false;
-      this.$scope.cats = false;
-      this.cells = this.$scope.cells = {};
-      this.winningCells = this.$scope.winningCells = {};
-      this.$scope.currentPlayer = this.player();
-      return this.getPatterns();
+    BoardCtrl.prototype.isMixedRow = function(row) {
+      return row.match(/o+\d?x+|x+\d?o+/i) != null;
     };
 
-    BoardCtrl.prototype.numberOfMoves = function() {
-      return Object.keys(this.cells).length;
+    BoardCtrl.prototype.hasOneX = function(row) {
+      return row.match(/x\d\d|\dx\d|\d\dx/i) != null;
+    };
+
+    BoardCtrl.prototype.hasTwoXs = function(row) {
+      return row.match(/xx\d|x\dx|\dxx/i) != null;
+    };
+
+    BoardCtrl.prototype.hasOneO = function(row) {
+      return row.match(/o\d\d|\do\d|\d\do/i) != null;
+    };
+
+    BoardCtrl.prototype.hasTwoOs = function(row) {
+      return row.match(/oo\d|o\do|\doo/i) != null;
+    };
+
+    BoardCtrl.prototype.isEmptyRow = function(row) {
+      return row.match(/\d\d\d/i) != null;
     };
 
     BoardCtrl.prototype.movesRemaining = function(player) {
       var totalMoves;
       totalMoves = 9 - this.numberOfMoves();
-      if (player === 'x') {
+      if (player === 1) {
         return Math.ceil(totalMoves / 2);
-      } else if (player === 'o') {
+      } else if (player === 0) {
         return Math.floor(totalMoves / 2);
       } else {
         return totalMoves;
       }
     };
 
-    BoardCtrl.prototype.player = function(options) {
-      var moves;
-      options || (options = {
-        whoMovedLast: false
-      });
-      moves = this.numberOfMoves() - (options.whoMovedLast ? 1 : 0);
-      if (moves % 2 === 0) {
-        return 'x';
-      } else {
-        return 'o';
-      }
-    };
-
-    BoardCtrl.prototype.isMixedRow = function(row) {
-      return !!row.match(/o+\d?x+|x+\d?o+/i);
-    };
-
-    BoardCtrl.prototype.hasOneX = function(row) {
-      return !!row.match(/x\d\d|\dx\d|\d\dx/i);
-    };
-
-    BoardCtrl.prototype.hasTwoXs = function(row) {
-      return !!row.match(/xx\d|x\dx|\dxx/i);
-    };
-
-    BoardCtrl.prototype.hasOneO = function(row) {
-      return !!row.match(/o\d\d|\do\d|\d\do/i);
-    };
-
-    BoardCtrl.prototype.hasTwoOs = function(row) {
-      return !!row.match(/oo\d|o\do|\doo/i);
-    };
-
-    BoardCtrl.prototype.isEmptyRow = function(row) {
-      return !!row.match(/\d\d\d/i);
+    BoardCtrl.prototype.rowStillWinnable = function(row) {
+      return !(this.isMixedRow(row) || (this.hasOneX(row) && this.movesRemaining(1) < 2) || (this.hasTwoXs(row) && this.movesRemaining(1) < 1) || (this.hasOneO(row) && this.movesRemaining(0) < 2) || (this.hasTwoOs(row) && this.movesRemaining(0) < 1) || (this.isEmptyRow(row) && this.movesRemaining() < 5));
     };
 
     BoardCtrl.prototype.gameUnwinnable = function() {
@@ -174,29 +163,25 @@
 
     BoardCtrl.prototype.announceWinner = function(winningPattern) {
       var k, v, winner, _ref, _ref1;
-      winner = this.cells[winningPattern[0]];
-      _ref = this.cells;
+      winner = this.scope.cells[winningPattern[0]];
+      _ref = this.scope.cells;
       for (k in _ref) {
         v = _ref[k];
-        this.winningCells[k] = (_ref1 = parseInt(k), __indexOf.call(winningPattern, _ref1) >= 0) ? 'win' : 'unwin';
+        this.scope.winningCells[k] = k.length === 1 && (_ref1 = parseInt(k), __indexOf.call(winningPattern, _ref1) >= 0) ? 'win' : 'unwin';
       }
-      this.$scope.theWinnerIs = winner;
-      return this.$scope.gameOn = false;
+      this.scope.theWinnerIs = winner;
+      return this.scope.gameOn = false;
     };
 
     BoardCtrl.prototype.announceTie = function() {
-      this.$scope.cats = true;
-      return this.$scope.gameOn = false;
-    };
-
-    BoardCtrl.prototype.rowStillWinnable = function(row) {
-      return !(this.isMixedRow(row) || (this.hasOneX(row) && this.movesRemaining('x') < 2) || (this.hasTwoXs(row) && this.movesRemaining('x') < 1) || (this.hasOneO(row) && this.movesRemaining('o') < 2) || (this.hasTwoOs(row) && this.movesRemaining('o') < 1) || (this.isEmptyRow(row) && this.movesRemaining() < 5));
+      this.scope.cats = true;
+      return this.scope.gameOn = false;
     };
 
     BoardCtrl.prototype.parseBoard = function() {
       var winningPattern;
       winningPattern = false;
-      this.patternsToTest = this.patternsToTest.filter((function(_this) {
+      this.patternsToTest = this.WIN_PATTERNS.filter((function(_this) {
         return function(pattern) {
           var row;
           row = _this.getRow(pattern);
@@ -213,14 +198,13 @@
       }
     };
 
-    BoardCtrl.prototype.mark = function($event) {
+    BoardCtrl.prototype.makeMove = function($event) {
       var cell;
       this.$event = $event;
       cell = this.$event.target.dataset.index;
-      if (this.$scope.gameOn && !this.cells[cell]) {
-        this.cells[cell] = this.player();
-        this.parseBoard();
-        return this.$scope.currentPlayer = this.player();
+      if (this.scope.gameOn && !this.scope.cells[cell] && this.scope.myMove) {
+        this.scope.cells[cell] = this.player === 1 ? 'x' : 'o';
+        return this.scope.myMove = false;
       }
     };
 
